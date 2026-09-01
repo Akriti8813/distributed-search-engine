@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# generated corpus + indexes are large binary artifacts - regenerate
+# with scripts/generate_corpus.py + scripts/build_shards.py instead
+# of committing them
+data/corpus/*.jsonl
+data/shards/*.pkl
+
+.DS_Store
+*.log
