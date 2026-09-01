@@ -1,0 +1,95 @@
+version: "3.9"
+
+x-service-base: &service-base
+  build: .
+  volumes:
+    - shard-data:/app/data
+  environment:
+    PYTHONUNBUFFERED: "1"
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # One-shot job: generates the synthetic corpus and builds the 4
+  # sharded inverted indexes into the shared `shard-data` volume, then
+  # exits. Shard services wait for it to finish successfully.
+  indexer:
+    <<: *service-base
+    command: >
+      sh -c "python scripts/generate_corpus.py --num-docs 50000 --out data/corpus/corpus.jsonl &&
+             python scripts/build_shards.py --corpus data/corpus/corpus.jsonl --num-shards 4 --out-dir data/shards"
+
+  shard-0:
+    <<: *service-base
+    command: uvicorn shard_service.main:app --host 0.0.0.0 --port 8001
+    environment:
+      SHARD_ID: "0"
+      SHARD_DATA_DIR: /app/data/shards
+    ports: ["8001:8001"]
+    depends_on:
+      indexer:
+        condition: service_completed_successfully
+
+  shard-1:
+    <<: *service-base
+    command: uvicorn shard_service.main:app --host 0.0.0.0 --port 8001
+    environment:
+      SHARD_ID: "1"
+      SHARD_DATA_DIR: /app/data/shards
+    ports: ["8002:8001"]
+    depends_on:
+      indexer:
+        condition: service_completed_successfully
+
+  shard-2:
+    <<: *service-base
+    command: uvicorn shard_service.main:app --host 0.0.0.0 --port 8001
+    environment:
+      SHARD_ID: "2"
+      SHARD_DATA_DIR: /app/data/shards
+    ports: ["8003:8001"]
+    depends_on:
+      indexer:
+        condition: service_completed_successfully
+
+  shard-3:
+    <<: *service-base
+    command: uvicorn shard_service.main:app --host 0.0.0.0 --port 8001
+    environment:
+      SHARD_ID: "3"
+      SHARD_DATA_DIR: /app/data/shards
+    ports: ["8004:8001"]
+    depends_on:
+      indexer:
+        condition: service_completed_successfully
+
+  gateway:
+    <<: *service-base
+    command: uvicorn gateway_service.main:app --host 0.0.0.0 --port 8000
+    environment:
+      SHARD_URLS: "http://shard-0:8001,http://shard-1:8001,http://shard-2:8001,http://shard-3:8001"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    ports: ["8000:8000"]
+    depends_on:
+      redis:
+        condition: service_healthy
+      shard-0:
+        condition: service_started
+      shard-1:
+        condition: service_started
+      shard-2:
+        condition: service_started
+      shard-3:
+        condition: service_started
+
+volumes:
+  shard-data:
