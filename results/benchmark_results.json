@@ -1,0 +1,65 @@
+{
+  "performance": {
+    "total_requests": 300,
+    "concurrency": 10,
+    "successful": 300,
+    "wall_time_s": 2.709,
+    "throughput_qps": 110.76,
+    "latency_ms": {
+      "min": 4.94,
+      "p50": 39.18,
+      "p95": 430.6,
+      "p99": 567.43,
+      "max": 585.22,
+      "mean": 87.75
+    },
+    "cache_hit_rate": 0.843
+  },
+  "ranking_quality": {
+    "per_topic": {
+      "distributed_systems": {
+        "query": "consensus replication sharding latency",
+        "precision_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "machine_learning": {
+        "query": "gradient neural network training",
+        "precision_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "databases": {
+        "query": "index query transaction isolation",
+        "precision_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "web_development": {
+        "query": "api endpoint frontend backend",
+        "precision_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "finance": {
+        "query": "portfolio equity dividend interest",
+        "precision_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "sports": {
+        "query": "match tournament score player",
+        "precision_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "cooking": {
+        "query": "recipe ingredient oven simmer",
+        "precision_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      },
+      "astronomy": {
+        "query": "galaxy orbit telescope planet",
+        "precision_at_k": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    "avg_precision_at_k": 1.0,
+    "avg_ndcg_at_k": 1.0
+  },
+  "corpus_size": 50000
+}
