@@ -1,0 +1,28 @@
+# Deploy image for the free-tier live demo (see demo_service/ and
+# README > "Live demo" for why this differs from the main Dockerfile:
+# it bakes the corpus + shard indexes in at BUILD time so the service
+# needs no shared volume and no separate indexing job - important
+# because free hosts generally don't offer either.
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY common/ common/
+COPY demo_service/ demo_service/
+COPY scripts/ scripts/
+
+# Build the corpus + shard indexes once, at image-build time.
+RUN python scripts/generate_corpus.py --num-docs 50000 --out data/corpus/corpus.jsonl && \
+    python scripts/build_shards.py --corpus data/corpus/corpus.jsonl --num-shards 4 --out-dir data/shards
+
+ENV PYTHONUNBUFFERED=1
+ENV SHARD_DATA_DIR=/app/data/shards
+ENV NUM_SHARDS=4
+
+# Render (and most free hosts) inject $PORT and expect the app to
+# bind to it, so the start command reads it at runtime via shell
+# expansion rather than a hardcoded --port.
+CMD uvicorn demo_service.main:app --host 0.0.0.0 --port ${PORT:-8000}
