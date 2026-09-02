@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import List
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -55,6 +56,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Distributed Search Engine - Live Demo", lifespan=lifespan)
+
+_INDEX_HTML = (Path(__file__).parent / "index.html").read_text()
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+def homepage():
+    return _INDEX_HTML
 
 
 def _search_one_shard(idx: ShardIndex, parsed, top_k: int, method: str) -> List[ResultItem]:
@@ -130,6 +138,7 @@ async def search(q: str, top_k: int = 10, method: str = "bm25"):
         cache_hit=False,
         shards_queried=len(state["shards"]),
         results=top_results,
+        parsed_terms=parsed.terms,
     )
     cache.set(cache_key, response.model_dump())
     logger.info("demo search", extra={"query": q, "took_ms": took_ms})

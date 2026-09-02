@@ -66,7 +66,9 @@ distributed-search-engine/
 
 ## Live demo
 
-A hosted version runs at **`<add your Render URL here after deploying>`** — try `GET /search?q=neural+network+training&top_k=5`.
+A hosted version runs at **[distributed-search-engine-uqc6.onrender.com](https://distributed-search-engine-uqc6.onrender.com)** — open it in a browser for a search box, or hit `GET /search?q=neural+network+training&top_k=5` directly. Interactive API docs are at [/docs](https://distributed-search-engine-uqc6.onrender.com/docs).
+
+The homepage (`demo_service/index.html`) is a small vanilla-JS UI that shows the search pipeline as it runs — parsed query terms, shards queried, latency, and cache hit/miss — rather than hiding that behind a plain search box.
 
 The full distributed architecture above (4 shard containers + gateway + Redis, talking over HTTP) is what's built and tested in this repo, and is exactly what `docker compose up` runs. The live demo linked above runs the *same* ranking/indexing/aggregation code (`common/ranking.py`, `common/inverted_index.py`, `common/query_parser.py`) from `demo_service/main.py`, which does the shard fan-out and merge in-process instead of over the network — a deliberate simplification for free hosting, since running 5 always-on containers isn't free. See `demo_service/main.py`'s module docstring for details.
 
